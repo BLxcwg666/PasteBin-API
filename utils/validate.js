@@ -3,4 +3,4 @@ function validatePaste(content, keeping) {
     return content && typeof content === 'string' && validKeepingOptions.includes(keeping);
   }  
   
-module.exports = { validatePaste };  
+module.exports = { validatePaste };
