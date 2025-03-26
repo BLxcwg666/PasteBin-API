@@ -25,7 +25,7 @@ const LANGUAGE_MAP = {
 };
 
 async function addPaste(req, res) {
-  const { owner = 'Anonymous', title = '', content, languageId, keeping } = req.body;
+  const { owner = 'Anonymous', title = 'Untitled', content, languageId, keeping } = req.body;
   if (!validatePaste(content, keeping) || !LANGUAGE_MAP[languageId]) {
     return res.status(400).json({ error: 'Invalid data' });
   }

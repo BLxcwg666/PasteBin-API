@@ -1,3 +1,4 @@
+const cors = require("cors");
 const express = require('express');
 const cluster = require('cluster');
 const config = require('./config');
@@ -28,6 +29,7 @@ if (cluster.isPrimary) {
             // 启动 API
             const app = express();
 
+            app.use(cors());
             app.use(bodyParser.json());
             app.use('/', router);
 
