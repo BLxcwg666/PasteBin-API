@@ -5,7 +5,7 @@ const dotenv = require('dotenv').config();
 const { client, connectRedis } = require('./modules/redisClient');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 app.use(bodyParser.json());
 app.use('/', router);

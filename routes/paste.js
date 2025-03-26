@@ -12,6 +12,18 @@ const PASTE_TTL = {
   'burn': 60,
 };
 
+const LANGUAGE_MAP = {
+    1: 'Plain Text',
+    2: 'HTML',
+    3: 'JavaScript',
+    4: 'TypeScript',
+    5: 'PHP',
+    6: 'Go',
+    7: 'C++',
+    8: 'C',
+    9: 'Python',
+};  
+
 async function addPaste(req, res) {
   const { owner = 'Anonymous', title = '', content, languageId, keeping } = req.body;
   if (!validatePaste(content, keeping) || !LANGUAGE_MAP[languageId]) {
