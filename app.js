@@ -20,7 +20,6 @@ if (cluster.isPrimary) {
     log.info("尝试连接到数据库...", "APP")
     connectRedis()
         .then(() => {
-            log.ok("成功连接到数据库~", "APP")
             // 复制线程
             for (let i = 0; i < numCPUs; i++) {
                 cluster.fork();
