@@ -1,9 +1,11 @@
 const express = require('express');
 const cluster = require('cluster');
+const config = require('./config');
 const log = require('./modules/logger');
 const bodyParser = require('body-parser');
 const router = require('./routes/router');
 const dotenv = require('dotenv').config();
+const numCPUs = require('os').cpus().length;
 const { connectRedis } = require('./modules/redisClient');
 
 const host = config.API_HOST;
