@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const client = require('../modules/redisClient');
+const { client } = require('../modules/redisClient');
 const { validatePaste } = require('../utils/validate');
 
 const PASTE_TTL = {
