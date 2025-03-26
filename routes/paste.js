@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { randomId } = require("./../utils/randomId");
 const { client } = require('../modules/redisClient');
 const { validatePaste } = require('../utils/validate');
 
@@ -30,7 +30,7 @@ async function addPaste(req, res) {
     return res.status(400).json({ error: 'Invalid data' });
   }
 
-  const id = uuidv4();
+  const id = randomId(8);
   const ttl = PASTE_TTL[keeping] || 300;
   const paste = { id, owner, title, content, language: LANGUAGE_MAP[languageId], keeping };
 

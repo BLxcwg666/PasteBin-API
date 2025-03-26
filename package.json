@@ -11,7 +11,6 @@
 		"dotenv": "^16.4.7",
 		"express": "^4.21.2",
 		"moment-timezone": "^0.5.48",
-		"redis": "^4.7.0",
-		"uuid": "^11.1.0"
+		"redis": "^4.7.0"
 	}
 }
