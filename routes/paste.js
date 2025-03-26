@@ -22,7 +22,7 @@ const LANGUAGE_MAP = {
     7: 'C++',
     8: 'C',
     9: 'Python',
-};  
+};
 
 async function addPaste(req, res) {
   const { owner = 'Anonymous', title = '', content, languageId, keeping } = req.body;
