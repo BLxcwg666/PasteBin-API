@@ -35,8 +35,7 @@ if (cluster.isPrimary) {
                 log.info(`API Started at port ${port} on ${host}`, "APP")
             });
 
-        })
-        .catch(err => log.err(err, "APP"));
+        });
 
     cluster.on('exit', (worker, code, signal) => {
         log.warn(`线程 PID ${worker.process.pid} 已退出，代码：${code}`, "APP")
