@@ -1,6 +1,6 @@
 const { randomId } = require("./../utils/randomId");
-const { client } = require('../modules/redisClient');
-const { validatePaste } = require('../utils/validate');
+const { client } = require("../modules/redisClient");
+const { validatePaste } = require("../utils/validate");
 
 const PASTE_TTL = {
   '5m': 300,
@@ -13,31 +13,37 @@ const PASTE_TTL = {
 };
 
 const LANGUAGE_MAP = {
-    1: 'Plain Text',
-    2: 'HTML',
-    3: 'JavaScript',
-    4: 'TypeScript',
-    5: 'PHP',
-    6: 'Go',
-    7: 'C++',
-    8: 'C',
-    9: 'Python',
+  1: 'Plain Text',
+  2: 'HTML',
+  3: 'JavaScript',
+  4: 'TypeScript',
+  5: 'PHP',
+  6: 'Go',
+  7: 'C++',
+  8: 'C',
+  9: 'Python',
 };
 
+// add
 async function addPaste(req, res) {
   const { owner = 'Anonymous', title = 'Untitled', content, languageId, keeping } = req.body;
   if (!validatePaste(content, keeping) || !LANGUAGE_MAP[languageId]) {
     return res.status(400).json({ error: 'Invalid data' });
-  }
+  };
 
   const id = randomId(8);
+  const token = randomId(16);   // token to delete paste
   const ttl = PASTE_TTL[keeping] || 300;
-  const paste = { id, owner, title, content, language: LANGUAGE_MAP[languageId], keeping };
+  const createdAt = new Date().toISOString(); // 当前
+  const expiresAt = new Date(Date.now() + ttl * 1000).toISOString(); // 过期
+  const paste = { id, owner, title, content, language: LANGUAGE_MAP[languageId], keeping, token, createdAt, expiresAt };
 
   await client.setEx(id, ttl, JSON.stringify(paste));
-  return res.status(201).json({ message: 'Paste created', id });
+
+  return res.status(201).json({ message: 'Paste created', id, token });
 }
 
+// get
 async function getPaste(req, res) {
   const { id } = req.params;
   const paste = await client.get(id);
@@ -50,8 +56,19 @@ async function getPaste(req, res) {
   return res.json(parsedPaste);
 }
 
+// del
 async function deletePaste(req, res) {
   const { id, token } = req.body;
+
+  const paste = await client.get(id);
+  if (!paste) return res.status(404).json({ error: 'Paste not found' });
+
+  const parsedPaste = JSON.parse(paste);
+
+  if (parsedPaste.token !== token) {
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+
   const result = await client.del(id);
   return res.json(result ? { message: 'Paste deleted' } : { error: 'Paste not found' });
 }
