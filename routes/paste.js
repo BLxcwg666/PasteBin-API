@@ -34,8 +34,8 @@ async function addPaste(req, res) {
   const id = randomId(8);
   const token = randomId(16);   // token to delete paste
   const ttl = PASTE_TTL[keeping] || 300;
-  const createdAt = new Date().toISOString(); // 当前
-  const expiresAt = new Date(Date.now() + ttl * 1000).toISOString(); // 过期
+  const createdAt = Date.now(); // 当前时间戳
+  const expiresAt = createdAt + ttl * 1000; // 过期时间戳
   const paste = { id, owner, title, content, language: LANGUAGE_MAP[languageId], keeping, token, createdAt, expiresAt };
 
   await client.setEx(id, ttl, JSON.stringify(paste));
