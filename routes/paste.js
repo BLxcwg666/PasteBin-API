@@ -32,6 +32,7 @@ async function addPaste(req, res) {
 
   const id = randomId(8);
   const token = randomId(16); // token for deletion
+  const ownerToken = randomId(16); // token for mark as first read
   const ttl = PASTE_TTL[keeping] || 300;
 
   const createdAt = Date.now();
@@ -47,7 +48,7 @@ async function addPaste(req, res) {
     token,
     createdAt,
     expiresAt: keeping === 'burn' ? undefined : expiresAt,
-    readCount: 0,
+    ownerToken
   };
 
   if (keeping === 'burn') {
@@ -62,30 +63,34 @@ async function addPaste(req, res) {
     token,
     createdAt,
     expiresAt: paste.expiresAt,
+    ownerToken
   });
 }
 
 async function getPaste(req, res) {
   const { id } = req.params;
+  const { ownerToken } = req.query;
 
   const paste = await client.get(id);
   if (!paste) return res.status(404).json({ error: 'Paste not found' });
 
   const parsedPaste = JSON.parse(paste);
+  console.log(`Stored ownerToken: ${parsedPaste.ownerToken}`);
 
   if (parsedPaste.keeping === 'burn') {
-    parsedPaste.readCount += 1;
-
-    if (parsedPaste.readCount >= 2) {
-      await client.del(id);
-      return res.status(410).json({ message: 'Paste has been burned' });
+    if (parsedPaste.ownerToken && ownerToken === parsedPaste.ownerToken) {
+      return res.json(parsedPaste);
+    } else {
+      console.log("Non-author visited, burning paste.");
+      res.json(parsedPaste);
+      setTimeout(async () => {
+        await client.del(id);
+        console.log(`Paste ${id} has been burned.`);
+      }, 0);
     }
-
-    await client.set(id, JSON.stringify(parsedPaste));
-    // parsedPaste.firstView = true; // 标记为首次查看
+  } else {
+    return res.json(parsedPaste);
   }
-
-  return res.json(parsedPaste);
 }
 
 async function deletePaste(req, res) {
