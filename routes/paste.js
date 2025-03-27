@@ -75,17 +75,14 @@ async function getPaste(req, res) {
   if (!paste) return res.status(404).json({ error: 'Paste not found' });
 
   const parsedPaste = JSON.parse(paste);
-  console.log(`Stored ownerToken: ${parsedPaste.ownerToken}`);
 
   if (parsedPaste.keeping === 'burn') {
     if (parsedPaste.ownerToken && ownerToken === parsedPaste.ownerToken) {
       return res.json(parsedPaste);
     } else {
-      console.log("Non-author visited, burning paste.");
       res.json(parsedPaste);
       setTimeout(async () => {
         await client.del(id);
-        console.log(`Paste ${id} has been burned.`);
       }, 0);
     }
   } else {
