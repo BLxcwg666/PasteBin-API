@@ -9,7 +9,6 @@ const PASTE_TTL = {
   '1w': 604800,
   '1m': 2592000,
   '1y': 31536000,
-  'burn': 60,
 };
 
 const LANGUAGE_MAP = {
@@ -24,39 +23,71 @@ const LANGUAGE_MAP = {
   9: 'Python',
 };
 
-// add
 async function addPaste(req, res) {
   const { owner = 'Anonymous', title = 'Untitled', content, languageId, keeping } = req.body;
+
   if (!validatePaste(content, keeping) || !LANGUAGE_MAP[languageId]) {
     return res.status(400).json({ error: 'Invalid data' });
-  };
+  }
 
   const id = randomId(8);
-  const token = randomId(16);   // token to delete paste
+  const token = randomId(16); // token for deletion
   const ttl = PASTE_TTL[keeping] || 300;
-  const createdAt = Date.now(); // 当前时间戳
-  const expiresAt = createdAt + ttl * 1000; // 过期时间戳
-  const paste = { id, owner, title, content, language: LANGUAGE_MAP[languageId], keeping, token, createdAt, expiresAt };
 
-  await client.setEx(id, ttl, JSON.stringify(paste));
+  const createdAt = Date.now();
+  const expiresAt = createdAt + ttl * 1000;
 
-  return res.status(201).json({ message: 'Paste created', id, token });
+  const paste = {
+    id,
+    owner,
+    title,
+    content,
+    language: LANGUAGE_MAP[languageId],
+    keeping,
+    token,
+    createdAt,
+    expiresAt: keeping === 'burn' ? undefined : expiresAt,
+    readCount: 0,
+  };
+
+  if (keeping === 'burn') {
+    await client.set(id, JSON.stringify(paste)); // do not set ttl for burn
+  } else {
+    await client.setEx(id, ttl, JSON.stringify(paste)); // set ttl normal
+  }
+
+  return res.status(201).json({
+    message: 'Paste created',
+    id,
+    token,
+    createdAt,
+    expiresAt: paste.expiresAt,
+  });
 }
 
-// get
 async function getPaste(req, res) {
   const { id } = req.params;
-  const paste = await client.get(id);
 
+  const paste = await client.get(id);
   if (!paste) return res.status(404).json({ error: 'Paste not found' });
 
   const parsedPaste = JSON.parse(paste);
-  if (parsedPaste.keeping === 'burn') await client.del(id);
+
+  if (parsedPaste.keeping === 'burn') {
+    parsedPaste.readCount += 1;
+
+    if (parsedPaste.readCount >= 2) {
+      await client.del(id);
+      return res.status(410).json({ message: 'Paste has been burned' });
+    }
+
+    await client.set(id, JSON.stringify(parsedPaste));
+    // parsedPaste.firstView = true; // 标记为首次查看
+  }
 
   return res.json(parsedPaste);
 }
 
-// del
 async function deletePaste(req, res) {
   const { id, token } = req.body;
 
