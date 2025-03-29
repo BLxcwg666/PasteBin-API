@@ -7,7 +7,7 @@ router.use('/add', require("./add"));
 router.use('/del', require("./del"));
 
 router.use((req, res) => {
-    res.json({ success: false, msg: "你在找什么喵？" });
+    res.status(404).json({ success: false, msg: "你在找什么喵？" });
 });
 
 module.exports = router;
