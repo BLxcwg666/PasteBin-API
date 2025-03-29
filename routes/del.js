@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { client } = require('../modules/redisClient');
 
-router.delete('/', async (req, res) => {
+router.post('/', async (req, res) => {
   const { id, token } = req.body;
 
   const paste = await client.get(id);
